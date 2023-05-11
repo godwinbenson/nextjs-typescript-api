@@ -1,9 +1,27 @@
+import { getCoinList } from "@/axios/getCoinList";
+import { useQuery } from "@tanstack/react-query";
 import Head from "next/head";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import React from "react";
+import { queryKey } from "../constants";
+import { CoinType } from "@/types/CoinType";
 
 const Home: React.FC = () => {
-  const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // Replace this with your actual data
+  const router = useRouter();
+  const { isLoading, isError, data: coinsList } = useQuery({
+    queryKey: [queryKey.coinsList],
+    queryFn: () => getCoinList("usd", 45)
+  })
+
+  if (isLoading) {
+    return <h1>Loading...</h1>;
+  }
+
+  if (isError) {
+    return <h1>There was an error</h1>;
+  }
+
   return (
     <>
       <Head>
@@ -24,25 +42,25 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* End hero unit */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {cards.map((card) => (
-              <div key={card} className="flex flex-col">
+            {coinsList.map((coin: CoinType) => (
+              <div key={coin.id} className="flex flex-col">
                 <Image
-                  src={`https://picsum.photos/200/200`}
+                  src={coin.image}
                   alt="placeholder"
                   width={200}
                   height={200}
                   className="object-cover object-center"
                 />
                 <div className="flex-1 p-4">
-                  <h2 className="text-xl font-semibold mb-2">Currency Name</h2>
+                  <h2 className="text-xl font-semibold mb-2">{coin.name}</h2>
                   <ul className="list-disc pl-5">
-                    <li>Current Price: xxx</li>
-                    <li>24h High: xxx</li>
-                    <li>24h Low: xxx</li>
+                    <li>Current Price: ${coin.current_price}</li>
+                    <li>24h High: ${coin.high_24h}</li>
+                    <li>24h Low: ${coin.low_24h}</li>
                   </ul>
                 </div>
                 <div className="p-4">
-                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                  <button onClick={() => router.push(`/currency/${coin.id}`)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                     More
                   </button>
                 </div>
@@ -50,7 +68,7 @@ const Home: React.FC = () => {
             ))}
           </div>
         </div>
-      </main>
+      </main >
     </>
   );
 };
